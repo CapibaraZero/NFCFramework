@@ -248,3 +248,76 @@ bool NFCFramework::write_ntag2xx_page(size_t page, uint8_t *data){
   }
   return false; 
 }
+
+void NFCFramework::fill_JIS_system_code(uint8_t *out) {
+    int j = 0;
+    for (int i = 0xAA00; i < 0xAAFE; i++) {
+	out[j++] = i;
+    }
+}
+
+int NFCFramework::felica_polling(uint8_t *idm, uint8_t *pmm, uint16_t *response_code) {
+    int polling_result = nfc.felica_Polling(DEFAULT_SYSTEM_CODE, DEFAULT_REQUEST_CODE, idm, pmm, response_code);
+    if(polling_result < 0) {
+	LOG_ERROR("Failed to poll with result: ");
+	SERIAL_DEVICE.println(polling_result);
+    }
+    return polling_result;
+}
+
+int NFCFramework::felica_polling(uint8_t system_code, uint8_t *idm, uint8_t *pmm, uint16_t *response_code) {
+    int polling_result = nfc.felica_Polling(system_code, DEFAULT_REQUEST_CODE, idm, pmm, response_code);
+    if(polling_result < 0) {
+	LOG_ERROR("Failed to poll with result: ");
+	SERIAL_DEVICE.println(polling_result);
+    }
+    return polling_result;
+}
+
+int NFCFramework::felica_polling(uint8_t system_code, uint8_t request_code, uint8_t *idm, uint8_t *pmm, uint16_t *response_code) {
+    int polling_result = nfc.felica_Polling(system_code, request_code, idm, pmm, response_code);
+    if(polling_result < 0) {
+	LOG_ERROR("Failed to poll with result: ");
+	SERIAL_DEVICE.println(polling_result);
+    }
+    return polling_result;
+}
+
+void NFCFramework::felica_request_response(uint8_t *out) {
+    int result = nfc.felica_RequestResponse(out);
+    if(result <= 0){	// return NULL if error
+	out = NULL;
+	LOG_ERROR("Failed to request response code. Error: ");
+	SERIAL_DEVICE.println(result);
+    }
+}
+
+void NFCFramework::felica_request_system_code(uint8_t *num_sys_code, uint16_t *sys_code_list) {
+    int result = nfc.felica_RequestSystemCode(num_sys_code, sys_code_list);
+    if(result <= 0) {
+	num_sys_code = NULL;
+	sys_code_list = NULL;
+    }
+}
+
+void NFCFramework::felica_read_without_encryption(uint8_t service_codes_list_length, uint16_t *service_codes, uint8_t block_number, uint16_t *block_list, uint8_t data[][16]){
+  int result = nfc.felica_ReadWithoutEncryption(service_codes_list_length, service_codes, block_number, block_list, data);
+  if(result <= 0) {
+    data = NULL;
+    LOG_ERROR("Error during reading. Error: ");
+    SERIAL_DEVICE.println(result);
+  }
+}
+
+int NFCFramework::felica_write_without_encryption(uint8_t service_codes_list_length, uint16_t *service_codes, uint8_t block_number, uint16_t *block_list, uint8_t data[][16]){
+    return nfc.felica_WriteWithoutEncryption(service_codes_list_length, service_codes, block_number, block_list, data);
+}
+
+void NFCFramework::felica_request_service(uint8_t node_number, uint16_t *node_codes, uint16_t *key_version) {
+    int result = nfc.felica_RequestService(node_number, node_codes, key_version);
+    if(result <= 0) {
+	key_version = NULL;
+	LOG_ERROR("Error during requesting service. Error code: ");
+	SERIAL_DEVICE.println(result);
+    }
+}
