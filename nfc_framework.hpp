@@ -84,7 +84,8 @@ public:
     } 
     
     // Generic ISO14443A functions
-    void get_tag_uid(uint8_t *uid, uint8_t length);
+    int get_tag_uid(uint8_t *uid, uint8_t length);
+    int get_tag_uid(uint8_t *uid, uint8_t *length);
 
     // Mifare functions
     bool auth_tag(uint8_t *key);
