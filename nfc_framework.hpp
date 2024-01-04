@@ -30,10 +30,13 @@
 #define BLOCK_SIZE 16   //  Default block size
 
 // Some NFCTAG21xx definitions
+#define NTAG_PAGE_SIZE 4
 #define NTAG203_PAGES 42
 #define NTAG213_PAGES 45
 #define NTAG215_PAGES 135
 #define NTAG216_PAGES 231
+#define NTAG203_RESERVED_PAGES 3
+#define NTAG21X_RESERVED_PAGES 6
 
 // FeliCa definitions
 #define DEFAULT_SYSTEM_CODE 0xFFFF

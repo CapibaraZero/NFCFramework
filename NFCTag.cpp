@@ -27,8 +27,16 @@ NFCTag::NFCTag(uint8_t *new_data, size_t uid_length) {
         ultralight = true;
 }
 
+NFCTag::NFCTag(uint8_t *new_data, size_t uid_length, size_t pages) {
+    data = new_data;
+    uid = (uint8_t *)malloc(uid_length * sizeof(uint8_t));
+    memcpy(uid, data, uid_length);
+    ntag = true;
+    pages_num = pages;
+}
+
 void NFCTag::get_block(int index, uint8_t *block) {
-    memcpy(block, &data[index], sizeof(uint8_t) * BLOCK_SIZE);
+    memcpy(block, &data[index * get_block_size()], sizeof(uint8_t) * get_block_size());
 }
 
 void NFCTag::get_atqa(uint8_t *atqa) {

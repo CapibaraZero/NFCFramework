@@ -150,6 +150,9 @@ uint8_t *NFCFramework::dump_tag(uint8_t key[], size_t *uid_length)
                 }
             }
         }
+    }else {
+        SERIAL_DEVICE.println("Timeout");
+        return NULL;
     }
 
     return all_blocks;
@@ -165,9 +168,12 @@ bool NFCFramework::auth_tag(uint8_t *key)
         {
             SERIAL_DEVICE.println("Key found!");
             return true;
+        }else {
+            SERIAL_DEVICE.println("Key not found!");
         }
+    }else {
+        SERIAL_DEVICE.println("Timeout");
     }
-    SERIAL_DEVICE.println("Key not found!");
     return false;
 }
 
@@ -179,6 +185,8 @@ bool NFCFramework::format_mifare()
     if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
     {
         return nfc.mifareclassic_FormatNDEF();
+    }else {
+        SERIAL_DEVICE.println("Timeout");
     }
     return false;
 }
@@ -193,6 +201,8 @@ bool NFCFramework::write_tag(size_t block_number, uint8_t *data, uint8_t *key)
         {
             return nfc.mifareclassic_WriteDataBlock(block_number, data);
         }
+    }else {
+        SERIAL_DEVICE.println("Timeout");
     }
     return false;
 }
@@ -207,14 +217,14 @@ uint8_t *NFCFramework::dump_ntag2xx_tag(size_t pages)
 {
     uint8_t uid[7] = {0};                                           // Buffer to store the returned UID
     uint8_t uidLength;                                              // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
-    uint8_t *tag_data = (uint8_t *)malloc(pages * sizeof(uint8_t)); // Container for all sectors
+    uint8_t *tag_data = prepare_tag_store(tag_data, pages * NTAG_PAGE_SIZE); // Container for all sectors
 
     if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
     {
         SERIAL_DEVICE.println("Found an ISO14443A card");
         SERIAL_DEVICE.print("  UID Length: ");
-        Serial.print(uidLength, DEC);
-        Serial.println(" bytes");
+        SERIAL_DEVICE.print(uidLength, DEC);
+        SERIAL_DEVICE.println(" bytes");
         SERIAL_DEVICE.print("  UID Value: ");
         nfc.PrintHex(uid, uidLength);
         SERIAL_DEVICE.println("");
@@ -225,7 +235,7 @@ uint8_t *NFCFramework::dump_ntag2xx_tag(size_t pages)
         }
         else
         {
-            uint8_t data[32];
+            uint8_t data[NTAG_PAGE_SIZE];
 
             LOG_INFO("Probably a ntag2xx tag");
             for (uint8_t i = 0; i < pages; i++)
@@ -233,14 +243,18 @@ uint8_t *NFCFramework::dump_ntag2xx_tag(size_t pages)
                 if (nfc.ntag2xx_ReadPage(i, data))
                 {
                     // Read successfully
-                    memcpy(&tag_data[i], data, sizeof(data));
+                    memcpy(&tag_data[i * NTAG_PAGE_SIZE], data, sizeof(data));
                 }
                 else
                 {
+                    memset(&tag_data[i * NTAG_PAGE_SIZE], -1, sizeof(data)); // Store block in all_blocks array
                     LOG_ERROR("Failed to read page");
                 }
             }
         }
+    }else {
+        SERIAL_DEVICE.println("Timeout");
+        return NULL;
     }
 
     return tag_data;
@@ -269,6 +283,9 @@ bool NFCFramework::write_ntag2xx_page(size_t page, uint8_t *data)
             LOG_INFO("Probably a ntag2xx tag");
             return nfc.ntag2xx_WritePage(page, data);
         }
+    }else {
+            SERIAL_DEVICE.println("Timeout");
+            return false;
     }
     return false;
 }

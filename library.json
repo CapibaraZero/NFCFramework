@@ -12,7 +12,7 @@
         "type": "git",
         "url": "https://github.com/CapibaraZero/NFCFramework"
     },
-    "version": "1.11",
+    "version": "1.15",
     "frameworks": "arduino",
     "dependencies":
 	{
