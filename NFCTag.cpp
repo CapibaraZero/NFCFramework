@@ -19,15 +19,17 @@
 #include <string.h>
 #include "NFCTag.hpp"
 
-NFCTag::NFCTag(uint8_t *new_data, size_t uid_length) {
+NFCTag::NFCTag(uint8_t *new_data, size_t uid_length)
+{
     data = new_data;
     uid = (uint8_t *)malloc(uid_length * sizeof(uint8_t));
     memcpy(uid, data, uid_length);
-    if(uid_length > 4)
+    if (uid_length > 4)
         ultralight = true;
 }
 
-NFCTag::NFCTag(uint8_t *new_data, size_t uid_length, size_t pages) {
+NFCTag::NFCTag(uint8_t *new_data, size_t uid_length, size_t pages)
+{
     data = new_data;
     uid = (uint8_t *)malloc(uid_length * sizeof(uint8_t));
     memcpy(uid, data, uid_length);
@@ -35,10 +37,70 @@ NFCTag::NFCTag(uint8_t *new_data, size_t uid_length, size_t pages) {
     pages_num = pages;
 }
 
-void NFCTag::get_block(int index, uint8_t *block) {
+NFCTag::NFCTag(uint8_t *idm, uint8_t *_pmm, uint16_t _sys_code)
+{
+    uid = (uint8_t *)malloc(8 * sizeof(uint8_t));
+    memcpy(uid, idm, 8);
+    memcpy(pmm, _pmm, 8);
+    sys_code = _sys_code;
+    felica = true;
+}
+
+NFCTag::NFCTag(uint8_t *idm, uint8_t *_pmm, uint16_t _sys_code, std::map<size_t, uint8_t*> *blocks)
+{
+    uid = (uint8_t *)malloc(8 * sizeof(uint8_t));
+    memcpy(uid, idm, 8);
+    memcpy(pmm, _pmm, 8);
+    sys_code = _sys_code;
+    felica_blocks.insert(blocks->begin(), blocks->end());
+    felica = true;
+}
+
+
+void NFCTag::get_block(int index, uint8_t *block)
+{
     memcpy(block, &data[index * get_block_size()], sizeof(uint8_t) * get_block_size());
 }
 
-void NFCTag::get_atqa(uint8_t *atqa) {
+void NFCTag::get_atqa(uint8_t *atqa)
+{
     memcpy(atqa, ultralight ? &data[9] : &data[7], sizeof(uint8_t) * 2);
+}
+
+FelicaSystemCodes NFCTag::get_sys_code()
+{
+    if (!felica)
+        return INVALID;
+
+    switch (sys_code)
+    {
+    case NDEF:
+        return NDEF;
+        break;
+    case NFC_F:
+        return NFC_F;
+        break;
+    case LITE_S:
+        return LITE_S;
+        break;
+    case SECURE_ID:
+        return SECURE_ID;
+        break;
+    case COMMON_AREA:
+        return COMMON_AREA;
+        break;
+    case PLUG:
+        return PLUG;
+        break;
+    default:
+        return INVALID;
+        break;
+    }
+}
+
+void NFCTag::add_block(int pos, uint8_t data[16]) {
+    if(!felica)
+        return;
+
+    felica_blocks.insert(std::pair<int, uint8_t*>(pos, data));
 }

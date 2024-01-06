@@ -332,28 +332,7 @@ int NFCFramework::felica_polling(uint8_t system_code, uint8_t request_code, uint
     return polling_result;
 }
 
-void NFCFramework::felica_request_response(uint8_t *out)
-{
-    int result = nfc.felica_RequestResponse(out);
-    if (result <= 0)
-    { // return NULL if error
-        out = NULL;
-        LOG_ERROR("Failed to request response code. Error: ");
-        SERIAL_DEVICE.println(result);
-    }
-}
-
-void NFCFramework::felica_request_system_code(uint8_t *num_sys_code, uint16_t *sys_code_list)
-{
-    int result = nfc.felica_RequestSystemCode(num_sys_code, sys_code_list);
-    if (result <= 0)
-    {
-        num_sys_code = NULL;
-        sys_code_list = NULL;
-    }
-}
-
-void NFCFramework::felica_read_without_encryption(uint8_t service_codes_list_length, uint16_t *service_codes, uint8_t block_number, uint16_t *block_list, uint8_t data[][16])
+bool NFCFramework::felica_read_without_encryption(uint8_t service_codes_list_length, uint16_t *service_codes, uint8_t block_number, uint16_t *block_list, uint8_t data[][16])
 {
     int result = nfc.felica_ReadWithoutEncryption(service_codes_list_length, service_codes, block_number, block_list, data);
     if (result <= 0)
@@ -361,21 +340,14 @@ void NFCFramework::felica_read_without_encryption(uint8_t service_codes_list_len
         data = NULL;
         LOG_ERROR("Error during reading. Error: ");
         SERIAL_DEVICE.println(result);
+        return false;
+    }else {
+        LOG_SUCCESS("Data read successfully");
+        return true;
     }
 }
 
 int NFCFramework::felica_write_without_encryption(uint8_t service_codes_list_length, uint16_t *service_codes, uint8_t block_number, uint16_t *block_list, uint8_t data[][16])
 {
     return nfc.felica_WriteWithoutEncryption(service_codes_list_length, service_codes, block_number, block_list, data);
-}
-
-void NFCFramework::felica_request_service(uint8_t node_number, uint16_t *node_codes, uint16_t *key_version)
-{
-    int result = nfc.felica_RequestService(node_number, node_codes, key_version);
-    if (result <= 0)
-    {
-        key_version = NULL;
-        LOG_ERROR("Error during requesting service. Error code: ");
-        SERIAL_DEVICE.println(result);
-    }
 }

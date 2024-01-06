@@ -40,7 +40,7 @@
 
 // FeliCa definitions
 #define DEFAULT_SYSTEM_CODE 0xFFFF
-#define DEFAULT_REQUEST_CODE 0xFF
+#define DEFAULT_REQUEST_CODE 0x01
 
 // Manufacturer codes for FeliCa cards as per Sony documentation
 enum FelicaManufacturer {
@@ -53,6 +53,7 @@ enum FelicaManufacturer {
 
 // System codes for FeliCa cards as per Sony documentation
 enum FelicaSystemCodes {
+    INVALID = 0xFFFF,
     NDEF = 0x12FC,
     NFC_F = 0x4000,
     LITE_S = 0x88B4,
@@ -105,10 +106,7 @@ public:
     int felica_polling(uint8_t *idm, uint8_t *pmm, uint16_t *response_code);
     int felica_polling(uint8_t system_code, uint8_t *idm, uint8_t *pmm, uint16_t *response_code);
     int felica_polling(uint8_t system_code, uint8_t request_code ,uint8_t *idm, uint8_t *pmm, uint16_t *response_code);
-    void felica_request_response(uint8_t *out);
-    void felica_request_service(uint8_t node_number, uint16_t *node_codes, uint16_t *key_version);
-    void felica_request_system_code(uint8_t *num_sys_code, uint16_t *sys_code_list);
-    void felica_read_without_encryption(uint8_t service_codes_list_length, uint16_t *service_codes, uint8_t block_number, uint16_t *block_list, uint8_t data[][16]);
+    bool felica_read_without_encryption(uint8_t service_codes_list_length, uint16_t *service_codes, uint8_t block_number, uint16_t *block_list, uint8_t data[][16]);
     int felica_write_without_encryption(uint8_t service_codes_list_length, uint16_t *service_codes, uint8_t block_number, uint16_t *block_list, uint8_t data[][16]);
     void felica_release() { nfc.felica_Release(); };
 };
