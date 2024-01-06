@@ -12,3 +12,8 @@
 
 - Add timeout warning
 - Fix NTAG support
+
+# 1.2(6 January 2024)
+
+- Add FeliCa support to NFCTag
+- Remove some untested FeliCa functions
