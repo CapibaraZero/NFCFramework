@@ -19,9 +19,11 @@
 #include <string.h>
 #include "NFCTag.hpp"
 
+#define GET_TAG_SIZE(uid_length) uid_length > 4 ? MIFARE_ULTRALIGHT_SIZE : MIFARE_CLASSIC_SIZE
 NFCTag::NFCTag(uint8_t *new_data, size_t uid_length)
 {
-    data = new_data;
+    data = (uint8_t *)malloc(GET_TAG_SIZE(uid_length));
+    memcpy(data, new_data, GET_TAG_SIZE(uid_length));
     uid = (uint8_t *)malloc(uid_length * sizeof(uint8_t));
     memcpy(uid, data, uid_length);
     if (uid_length > 4)
@@ -30,7 +32,8 @@ NFCTag::NFCTag(uint8_t *new_data, size_t uid_length)
 
 NFCTag::NFCTag(uint8_t *new_data, size_t uid_length, size_t pages)
 {
-    data = new_data;
+    data = (uint8_t *)malloc(GET_TAG_SIZE(uid_length));
+    memcpy(data, new_data, GET_TAG_SIZE(uid_length));
     uid = (uint8_t *)malloc(uid_length * sizeof(uint8_t));
     memcpy(uid, data, uid_length);
     ntag = true;

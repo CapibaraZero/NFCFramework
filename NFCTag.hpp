@@ -50,7 +50,7 @@ public:
     ~NFCTag(){};
     inline uint8_t *get_uid() { return uid; };
     inline uint8_t *get_data() { return data; };
-    inline size_t get_data_size() { return sizeof(data); }; // TODO: Drop it
+    inline size_t get_data_size() { return ultralight ? MIFARE_CLASSIC_SIZE : MIFARE_ULTRALIGHT_SIZE; };
     inline bool is_ultralight() { return ultralight; };
     inline bool is_ntag() { return ntag; }
     void get_block(int index, uint8_t *block);
