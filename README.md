@@ -14,10 +14,10 @@ To set I2C pins, use the following build flags: PN532_IRQ_PIN and PN532_RST_PIN
 - Dump all blocks in a tag
 - Card formatter(mifare only)
 - NTag2xx support(writer/reader)
+- feliCa initial support
 
 ### TODO
 - Add full working card emulation
-- Add felica support 
 
 ### References
 

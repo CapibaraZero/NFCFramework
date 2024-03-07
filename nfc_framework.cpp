@@ -24,15 +24,18 @@
 #define LOG_SUCCESS(reason) SERIAL_DEVICE.printf("\e[32m%s\e[0m", reason)
 #define LOG_INFO(reason) SERIAL_DEVICE.printf("%s", reason)
 
-NFCFramework::NFCFramework(int sck, int miso, int mosi, int ss) // SPI
-{
-    nfc = Adafruit_PN532(sck, miso, mosi, ss);
-    nfc.begin();
-}
+// NFCFramework::NFCFramework(int sck, int miso, int mosi, int ss) // SPI
+// {
+//     nfc = Adafruit_PN532(sck, miso, mosi, ss);
+//     nfc.begin();
+//     nfc.setPassiveActivationRetries(0xFF);
+// }
 
 NFCFramework::~NFCFramework()
 {
-    Wire.end();
+    Serial0.println("Deleting NFC Framework");
+    // Wire.end();
+    // Wire.endTransmission();
 }
 
 bool NFCFramework::ready()
@@ -47,6 +50,7 @@ int NFCFramework::get_tag_uid(uint8_t *uid, uint8_t length)
 
 int NFCFramework::get_tag_uid(uint8_t *uid, uint8_t *length)
 {
+    Serial0.println("Getting NFC Framework");
     return nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, length);
 }
 
@@ -77,8 +81,12 @@ uint8_t *NFCFramework::prepare_tag_store(uint8_t *tag_data, size_t tag_size)
     return tag_data;
 }
 
-uint8_t *NFCFramework::dump_tag(uint8_t key[], size_t *uid_length)
+uint8_t *NFCFramework::dump_tag(uint8_t key[], size_t *uid_length, DumpResult *result)
 {
+    // unreadable_sectors = 0;
+    // unauthenticated_sectors = 0;
+    result->unreadable = 0;
+    result->unauthenticated = 0;
     uint8_t uid[7] = {0};            // Buffer to store the returned UID
     uint8_t uidLength = 0;           // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
     uint8_t block[BLOCK_SIZE] = {0}; // Array to store each block during reads
@@ -126,12 +134,14 @@ uint8_t *NFCFramework::dump_tag(uint8_t key[], size_t *uid_length)
                     }
                     else
                     {
+                        result->unreadable++;
                         print_error(currentblock, "Unable to read\n");
                         memset(&all_blocks[currentblock * 16], -1, sizeof(block)); // Store block in all_blocks array
                     }
                 }
                 else
                 {
+                    result->unauthenticated++;
                     print_error(currentblock, "Unable to authenticate.\n");
                     memset(&all_blocks[currentblock * 16], -1, sizeof(block)); // Store block in all_blocks array
                 };
@@ -146,6 +156,7 @@ uint8_t *NFCFramework::dump_tag(uint8_t key[], size_t *uid_length)
                 }
                 else
                 {
+                    result->unreadable++;
                     print_error(currentblock, "Unable to read\n");
                 }
             }
@@ -157,6 +168,14 @@ uint8_t *NFCFramework::dump_tag(uint8_t key[], size_t *uid_length)
 
     return all_blocks;
 }
+
+// uint8_t* NFCFramework::dump_tag(uint8_t key[], size_t *uid_length, DumpResult *result)
+// {   
+//     uint8_t *data = dump_tag(key, uid_length);
+//     result->unauthenticated = unauthenticated_sectors;
+//     result->unreadable = unreadable_sectors;
+//     return data;
+// }
 
 bool NFCFramework::auth_tag(uint8_t *key)
 {
@@ -240,16 +259,16 @@ uint8_t *NFCFramework::dump_ntag2xx_tag(size_t pages)
             LOG_INFO("Probably a ntag2xx tag");
             for (uint8_t i = 0; i < pages; i++)
             {
-                if (nfc.ntag2xx_ReadPage(i, data))
-                {
-                    // Read successfully
-                    memcpy(&tag_data[i * NTAG_PAGE_SIZE], data, sizeof(data));
-                }
-                else
-                {
-                    memset(&tag_data[i * NTAG_PAGE_SIZE], -1, sizeof(data)); // Store block in all_blocks array
-                    LOG_ERROR("Failed to read page");
-                }
+                // if (nfc.ntag2xx_ReadPage(i, data))
+                // {
+                //     // Read successfully
+                //     memcpy(&tag_data[i * NTAG_PAGE_SIZE], data, sizeof(data));
+                // }
+                // else
+                // {
+                //     memset(&tag_data[i * NTAG_PAGE_SIZE], -1, sizeof(data)); // Store block in all_blocks array
+                //     LOG_ERROR("Failed to read page");
+                // }
             }
         }
     }else {
@@ -281,11 +300,11 @@ bool NFCFramework::write_ntag2xx_page(size_t page, uint8_t *data)
         else
         {
             LOG_INFO("Probably a ntag2xx tag");
-            return nfc.ntag2xx_WritePage(page, data);
+            return nfc.mifareultralight_WritePage(page, data);
         }
     }else {
-            SERIAL_DEVICE.println("Timeout");
-            return false;
+        SERIAL_DEVICE.println("Timeout");
+        return false;
     }
     return false;
 }
@@ -332,22 +351,35 @@ int NFCFramework::felica_polling(uint8_t system_code, uint8_t request_code, uint
     return polling_result;
 }
 
-bool NFCFramework::felica_read_without_encryption(uint8_t service_codes_list_length, uint16_t *service_codes, uint8_t block_number, uint16_t *block_list, uint8_t data[][16])
+int NFCFramework::felica_read_without_encryption(uint8_t service_codes_list_length, uint16_t *service_codes, uint8_t block_number, uint16_t *block_list, uint8_t data[][16])
 {
-    int result = nfc.felica_ReadWithoutEncryption(service_codes_list_length, service_codes, block_number, block_list, data);
-    if (result <= 0)
-    {
-        data = NULL;
-        LOG_ERROR("Error during reading. Error: ");
-        SERIAL_DEVICE.println(result);
-        return false;
-    }else {
-        LOG_SUCCESS("Data read successfully");
-        return true;
+    uint8_t _idm[8];
+    uint8_t _pmm[8];
+    uint16_t sys_code;
+    if(felica_polling(_idm, _pmm, &sys_code)) { // Wait for a FeliCa card
+        int result = nfc.felica_ReadWithoutEncryption(service_codes_list_length, service_codes, block_number, block_list, data);
+        if (result <= 0)
+        {
+            data = NULL;
+            LOG_ERROR("Error during reading. Error: ");
+            SERIAL_DEVICE.println(result);
+            return result;
+        }else {
+            LOG_SUCCESS("Data read successfully");
+            return result;
+        }
     }
+    return -1;
 }
 
 int NFCFramework::felica_write_without_encryption(uint8_t service_codes_list_length, uint16_t *service_codes, uint8_t block_number, uint16_t *block_list, uint8_t data[][16])
 {
-    return nfc.felica_WriteWithoutEncryption(service_codes_list_length, service_codes, block_number, block_list, data);
+    uint8_t _idm[8];
+    uint8_t _pmm[8];
+    uint16_t sys_code;
+    if(felica_polling(_idm, _pmm, &sys_code)) { // Wait for a FeliCa card
+        return nfc.felica_WriteWithoutEncryption(service_codes_list_length, service_codes, block_number, block_list, data);
+    } else {
+        return -1;
+    }
 }

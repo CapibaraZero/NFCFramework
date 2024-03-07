@@ -17,3 +17,7 @@
 
 - Add FeliCa support to NFCTag
 - Remove some untested FeliCa functions
+
+# 1.3(7 March 2024)
+
+- Switch to Seeed-Studio PN532 library

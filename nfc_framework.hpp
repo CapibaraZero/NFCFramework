@@ -18,7 +18,10 @@
 #ifndef NFCFramework_H
 #define NFCFramework_H
 
-#include <Adafruit_PN532.h>
+#include <Arduino.h>
+#include <Wire.h>
+#include "PN532_I2C.h"
+#include "PN532.h"
 #include <SPI.h>
 
 // Some Mifare definitions
@@ -62,7 +65,10 @@ enum FelicaSystemCodes {
     PLUG = 0xFEE1
 };
 
-
+typedef struct DumpResult{
+    uint8_t unreadable = 0;
+    uint8_t unauthenticated = 0;
+} DumpResult;
 
 class NFCFramework
 {
@@ -71,7 +77,8 @@ private:
     int miso;
     int mosi;
     int ss;
-    Adafruit_PN532 nfc = Adafruit_PN532(PN532_IRQ_PIN, PN532_RST_PIN);  // I2C pins defined by build_flags
+    PN532_I2C pn532i2c = PN532_I2C(Wire);
+    PN532 nfc = PN532(pn532i2c);
     void print_block(int currentblock, uint8_t *block);
     void print_error(int block_number, const char *reason);
     uint8_t *prepare_tag_store(uint8_t *tag_data, size_t tag_size); 
@@ -79,12 +86,23 @@ private:
     // Create JIS system code(0xAA00 to 0xAAFE) dynamically to save some memory
     void fill_JIS_system_code(uint8_t *out);
 public:
-    NFCFramework(int sck, int miso, int mosi, int ss);
-    NFCFramework(){nfc.begin();};
+    // NFCFramework(int sck, int miso, int mosi, int ss);
+    NFCFramework(){
+        Serial0.println("Init NFC Framework");
+        nfc.begin();
+        nfc.SAMConfig();
+    }
     ~NFCFramework();
     bool ready();
     void printHex(byte *data, uint32_t length) {
-        nfc.PrintHex(data, length);
+    for (uint8_t i = 0; i < length; i++) {
+        if (data[i] < 0x10) {
+            Serial0.print(" 0");
+        } else {
+            Serial0.print(' ');
+        }
+        Serial0.print(data[i], HEX);
+    }
     } 
     
     // Generic ISO14443A functions
@@ -96,7 +114,8 @@ public:
     bool write_tag(size_t block_number, uint8_t *data, uint8_t *key);
     void emulate_tag(uint8_t *data);
     bool format_mifare();
-    uint8_t *dump_tag(uint8_t key[], size_t *uid_length); 
+    // uint8_t *dump_tag(uint8_t key[], size_t *uid_length);
+    uint8_t* dump_tag(uint8_t key[], size_t *uid_length, DumpResult *result);
 
     // NFCTAG21xx functions
     uint8_t *dump_ntag2xx_tag(size_t pages);
@@ -106,7 +125,7 @@ public:
     int felica_polling(uint8_t *idm, uint8_t *pmm, uint16_t *response_code);
     int felica_polling(uint8_t system_code, uint8_t *idm, uint8_t *pmm, uint16_t *response_code);
     int felica_polling(uint8_t system_code, uint8_t request_code ,uint8_t *idm, uint8_t *pmm, uint16_t *response_code);
-    bool felica_read_without_encryption(uint8_t service_codes_list_length, uint16_t *service_codes, uint8_t block_number, uint16_t *block_list, uint8_t data[][16]);
+    int felica_read_without_encryption(uint8_t service_codes_list_length, uint16_t *service_codes, uint8_t block_number, uint16_t *block_list, uint8_t data[][16]);
     int felica_write_without_encryption(uint8_t service_codes_list_length, uint16_t *service_codes, uint8_t block_number, uint16_t *block_list, uint8_t data[][16]);
     void felica_release() { nfc.felica_Release(); };
 };
