@@ -38,7 +38,7 @@ private:
         otherwise we would have enormous array with empty block
         so is better to track block information in a map
     */
-    std::map<int, uint8_t*> felica_blocks;
+    uint8_t felica_data[14][16] = {0};
     inline size_t get_block_size() { return ntag ? NTAG_PAGE_SIZE : BLOCK_SIZE; }
 public:
     NFCTag(uint8_t *new_data, size_t uid_length);
@@ -46,10 +46,11 @@ public:
     NFCTag(uint8_t *new_data, size_t uid_length, size_t pages);
     // Constructor for FeliCa
     NFCTag(uint8_t *idm, uint8_t *_pmm, uint16_t _sys_code);
-    NFCTag(uint8_t *idm, uint8_t *_pmm, uint16_t _sys_code, std::map<size_t, uint8_t*> *blocks);
+    NFCTag(uint8_t *idm, uint8_t *_pmm, uint16_t _sys_code, uint8_t data[14][16]);
     ~NFCTag(){};
     inline uint8_t *get_uid() { return uid; };
-    inline uint8_t *get_data() { return data; };
+    uint8_t *get_data();
+    void get_felica_data(uint8_t new_data[14][16]) { memcpy(new_data, felica_data, 14*16); };
     inline size_t get_data_size() { return ultralight ? MIFARE_CLASSIC_SIZE : MIFARE_ULTRALIGHT_SIZE; };
     inline bool is_ultralight() { return ultralight; };
     inline bool is_ntag() { return ntag; }
@@ -63,7 +64,6 @@ public:
     inline uint8_t get_sak() { return ultralight ? data[8] : data[6]; };
     void get_atqa(uint8_t *atqa);
     FelicaSystemCodes get_sys_code();
-    void add_block(int pos, uint8_t data[16]);
 };
 
 #endif

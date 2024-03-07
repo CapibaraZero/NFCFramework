@@ -49,13 +49,15 @@ NFCTag::NFCTag(uint8_t *idm, uint8_t *_pmm, uint16_t _sys_code)
     felica = true;
 }
 
-NFCTag::NFCTag(uint8_t *idm, uint8_t *_pmm, uint16_t _sys_code, std::map<size_t, uint8_t*> *blocks)
+NFCTag::NFCTag(uint8_t *idm, uint8_t *_pmm, uint16_t _sys_code, uint8_t data[14][16])
 {
     uid = (uint8_t *)malloc(8 * sizeof(uint8_t));
+    pmm = (uint8_t *)malloc(8 * sizeof(uint8_t));
     memcpy(uid, idm, 8);
     memcpy(pmm, _pmm, 8);
     sys_code = _sys_code;
-    felica_blocks.insert(blocks->begin(), blocks->end());
+    memcpy(felica_data, data, 14*16);
+    // felica_blocks.insert(blocks->begin(), blocks->end());
     felica = true;
 }
 
@@ -69,6 +71,18 @@ void NFCTag::get_atqa(uint8_t *atqa)
 {
     memcpy(atqa, ultralight ? &data[9] : &data[7], sizeof(uint8_t) * 2);
 }
+
+uint8_t *NFCTag::get_data() {
+    if(felica) {
+        /* Flat FeliCa matrix data */
+        uint8_t *flat_data = (uint8_t *)malloc(14*16);
+        for(int i = 0; i < 14; i++) {
+            memcpy(&flat_data[i], &felica_data[i][0], 16);
+        }
+        return flat_data;
+    }
+    return data;
+};
 
 FelicaSystemCodes NFCTag::get_sys_code()
 {
@@ -99,11 +113,4 @@ FelicaSystemCodes NFCTag::get_sys_code()
         return INVALID;
         break;
     }
-}
-
-void NFCTag::add_block(int pos, uint8_t data[16]) {
-    if(!felica)
-        return;
-
-    felica_blocks.insert(std::pair<int, uint8_t*>(pos, data));
 }
