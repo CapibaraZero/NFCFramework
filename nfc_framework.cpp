@@ -18,12 +18,6 @@
 #include "nfc_framework.hpp"
 #include "Arduino.h"
 
-// Debug macros
-#define SERIAL_DEVICE Serial0
-#define LOG_ERROR(reason) SERIAL_DEVICE.printf("\e[31m%s\e[0m", reason)
-#define LOG_SUCCESS(reason) SERIAL_DEVICE.printf("\e[32m%s\e[0m", reason)
-#define LOG_INFO(reason) SERIAL_DEVICE.printf("%s", reason)
-
 // NFCFramework::NFCFramework(int sck, int miso, int mosi, int ss) // SPI
 // {
 //     nfc = Adafruit_PN532(sck, miso, mosi, ss);
@@ -33,7 +27,7 @@
 
 NFCFramework::~NFCFramework()
 {
-    Serial0.println("Deleting NFC Framework");
+    LOG_INFO("Deleting NFC Framework");
     // Wire.end();
     // Wire.endTransmission();
 }
@@ -50,7 +44,7 @@ int NFCFramework::get_tag_uid(uint8_t *uid, uint8_t length)
 
 int NFCFramework::get_tag_uid(uint8_t *uid, uint8_t *length)
 {
-    Serial0.println("Getting NFC Framework");
+    LOG_INFO("Getting NFC Framework");
     return nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, length);
 }
 

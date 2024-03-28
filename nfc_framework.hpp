@@ -70,6 +70,17 @@ typedef struct DumpResult{
     uint8_t unauthenticated = 0;
 } DumpResult;
 
+// Debug macros
+#ifdef ARDUINO_NANO_ESP32
+#define SERIAL_DEVICE Serial
+#else
+#define SERIAL_DEVICE Serial0
+#endif
+
+#define LOG_ERROR(reason) SERIAL_DEVICE.printf("\e[31m%s\e[0m", reason)
+#define LOG_SUCCESS(reason) SERIAL_DEVICE.printf("\e[32m%s\e[0m", reason)
+#define LOG_INFO(reason) SERIAL_DEVICE.printf("%s", reason)
+
 class NFCFramework
 {
 private:
@@ -88,7 +99,7 @@ private:
 public:
     // NFCFramework(int sck, int miso, int mosi, int ss);
     NFCFramework(){
-        Serial0.println("Init NFC Framework");
+        LOG_INFO("Init NFC Framework");
         nfc.begin();
         nfc.SAMConfig();
     }
@@ -97,11 +108,11 @@ public:
     void printHex(byte *data, uint32_t length) {
     for (uint8_t i = 0; i < length; i++) {
         if (data[i] < 0x10) {
-            Serial0.print(" 0");
+            LOG_INFO(" 0");
         } else {
-            Serial0.print(' ');
+            LOG_INFO(' ');
         }
-        Serial0.print(data[i], HEX);
+        SERIAL_DEVICE.print(data[i], HEX);
     }
     } 
     
