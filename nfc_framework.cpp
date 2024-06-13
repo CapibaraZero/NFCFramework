@@ -118,7 +118,7 @@ uint8_t *NFCFramework::dump_tag(uint8_t key[], size_t *uid_length, DumpResult *r
             SERIAL_DEVICE.println("-------------------------");
             if (!MIFARE_IS_ULTRALIGHT(uidLength))
             {
-                if (nfc.mifareclassic_AuthenticateBlock(uid, uidLength, currentblock, 1, key))
+                if (nfc.mifareclassic_AuthenticateBlock(uid, uidLength, currentblock, 0, key))
                 {
                     if (nfc.mifareclassic_ReadDataBlock(currentblock, block))
                     {
@@ -171,13 +171,13 @@ uint8_t *NFCFramework::dump_tag(uint8_t key[], size_t *uid_length, DumpResult *r
 //     return data;
 // }
 
-bool NFCFramework::auth_tag(uint8_t *key)
+bool NFCFramework::auth_tag(uint8_t *key, uint8_t block_number, KeyType key_type)
 {
     uint8_t uid[7] = {0}; // Buffer to store the returned UID
     uint8_t uidLength;    // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
     if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
     {
-        if (nfc.mifareclassic_AuthenticateBlock(uid, uidLength, 0, 1, key))
+        if (nfc.mifareclassic_AuthenticateBlock(uid, uidLength, block_number, key_type, key))
         {
             SERIAL_DEVICE.println("Key found!");
             return true;

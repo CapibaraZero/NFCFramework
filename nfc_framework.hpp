@@ -70,6 +70,11 @@ typedef struct DumpResult{
     uint8_t unauthenticated = 0;
 } DumpResult;
 
+typedef enum KeyType {
+    KEY_A,
+    KEY_B
+} KeyType;
+
 // Debug macros
 #ifdef ARDUINO_NANO_ESP32
 #define SERIAL_DEVICE Serial
@@ -121,7 +126,7 @@ public:
     int get_tag_uid(uint8_t *uid, uint8_t *length);
 
     // Mifare functions
-    bool auth_tag(uint8_t *key);
+    bool auth_tag(uint8_t *key, uint8_t block_number, KeyType key_type);
     bool write_tag(size_t block_number, uint8_t *data, uint8_t *key);
     void emulate_tag(uint8_t *data);
     bool format_mifare();
