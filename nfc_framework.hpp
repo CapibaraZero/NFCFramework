@@ -75,6 +75,18 @@ typedef enum KeyType {
     KEY_B
 } KeyType;
 
+typedef struct TagType {
+    const char *name;
+    uint16_t atqa;
+    uint8_t sak;
+    uint8_t uid_length;
+    uint8_t blocks;
+} TagType;
+
+#define MIFARE_CLASSIC_1K (TagType){"Mifare Classic 1K", 0x04, 0x08, 4, 64}
+// #define MIFARE_CLASSIC_4K (TagType){0x04, 0x03, 16, 264 }
+#define MIFARE_MINI (TagType){"Mifare Mini",0x04, 0x09, 4, 20}
+
 // Debug macros
 #ifdef ARDUINO_NANO_ESP32
 #define SERIAL_DEVICE Serial
@@ -120,10 +132,19 @@ public:
         SERIAL_DEVICE.print(data[i], HEX);
     }
     } 
-    
+    static TagType lookup_tag(uint16_t atqa, uint8_t sak, uint8_t uid_len) {
+        if (atqa == 0x04 && sak == 0x08 && uid_len == MIFARE_CLASSIC_1K.uid_length) {
+            return MIFARE_CLASSIC_1K;
+        } else if (atqa == 0x04 && sak == 0x09 && uid_len == MIFARE_MINI.uid_length) {
+            return MIFARE_MINI;
+        } else {
+            return (TagType){0, 0, 0, 20};
+        }
+    }
     // Generic ISO14443A functions
     int get_tag_uid(uint8_t *uid, uint8_t length);
     int get_tag_uid(uint8_t *uid, uint8_t *length);
+    int get_tag_uid(uint8_t *uid, uint8_t *length, uint16_t *atqa, uint8_t *sak);
 
     // Mifare functions
     bool auth_tag(uint8_t *key, uint8_t block_number, KeyType key_type);

@@ -48,6 +48,12 @@ int NFCFramework::get_tag_uid(uint8_t *uid, uint8_t *length)
     return nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, length);
 }
 
+int NFCFramework::get_tag_uid(uint8_t *uid, uint8_t *length, uint16_t *atqa, uint8_t *sak)
+{
+    LOG_INFO("Getting NFC Framework");
+    return nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, length, atqa, sak);
+}
+
 void NFCFramework::print_block(int currentblock, uint8_t *block)
 {
     SERIAL_DEVICE.print("Block ");
