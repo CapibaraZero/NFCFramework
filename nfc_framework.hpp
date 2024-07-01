@@ -75,6 +75,10 @@ typedef enum KeyType {
     KEY_B
 } KeyType;
 
+typedef struct Key {
+    KeyType type;
+    uint8_t data[6];
+} Key;
 typedef struct TagType {
     const char *name;
     uint16_t atqa;
@@ -151,8 +155,11 @@ public:
     bool write_tag(size_t block_number, uint8_t *data, uint8_t *key);
     void emulate_tag(uint8_t *data);
     bool format_mifare();
+    
+    bool read_block(uint8_t block, uint8_t *key, KeyType key_type, uint8_t *out);
     // uint8_t *dump_tag(uint8_t key[], size_t *uid_length);
     uint8_t* dump_tag(uint8_t key[], size_t *uid_length, DumpResult *result);
+    uint8_t* dump_tag(Key *key, uint8_t blocks, DumpResult *result);
 
     // NFCTAG21xx functions
     uint8_t *dump_ntag2xx_tag(size_t pages);
