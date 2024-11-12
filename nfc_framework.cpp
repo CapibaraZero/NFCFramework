@@ -310,13 +310,13 @@ bool NFCFramework::format_mifare()
     return false;
 }
 
-bool NFCFramework::write_tag(size_t block_number, uint8_t *data, uint8_t *key)
+bool NFCFramework::write_tag(size_t block_number, uint8_t *data, uint8_t key_type, uint8_t *key)
 {
     uint8_t uid[7] = {0}; // Buffer to store the returned UID
     uint8_t uidLength;    // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
     if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
     {
-        if (nfc.mifareclassic_AuthenticateBlock(uid, uidLength, 0, 1, key))
+        if (nfc.mifareclassic_AuthenticateBlock(uid, uidLength, block_number, key_type, key))
         {
             return nfc.mifareclassic_WriteDataBlock(block_number, data);
         }
