@@ -296,20 +296,6 @@ bool NFCFramework::auth_tag(uint8_t *key, uint8_t block_number, KeyType key_type
     return false;
 }
 
-bool NFCFramework::format_mifare()
-{
-    uint8_t uid[] = {0, 0, 0, 0, 0, 0, 0}; // Buffer to store the returned UID
-    uint8_t uidLength;                     // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
-
-    if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
-    {
-        return nfc.mifareclassic_FormatNDEF();
-    }else {
-        SERIAL_DEVICE.println("Timeout");
-    }
-    return false;
-}
-
 bool NFCFramework::write_tag(size_t block_number, uint8_t *data, uint8_t key_type, uint8_t *key)
 {
     uint8_t uid[7] = {0}; // Buffer to store the returned UID

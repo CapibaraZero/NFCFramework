@@ -154,7 +154,6 @@ public:
     bool auth_tag(uint8_t *key, uint8_t block_number, KeyType key_type);
     bool write_tag(size_t block_number, uint8_t *data, uint8_t key_type, uint8_t *key);
     void emulate_tag(uint8_t *data);
-    bool format_mifare();
     
     bool read_block(uint8_t block, uint8_t *key, KeyType key_type, uint8_t *out);
     // uint8_t *dump_tag(uint8_t key[], size_t *uid_length);
