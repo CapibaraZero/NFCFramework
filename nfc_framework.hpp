@@ -126,6 +126,10 @@ public:
     }
     ~NFCFramework();
     bool ready();
+    void power_down() {
+        nfc.SAMConfig();    // Reset module
+        nfc.powerDownMode();    // Power down it(save energy+reset it)
+    }
     void printHex(byte *data, uint32_t length) {
     for (uint8_t i = 0; i < length; i++) {
         if (data[i] < 0x10) {
