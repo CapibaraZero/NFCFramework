@@ -406,7 +406,7 @@ void NFCFramework::fill_JIS_system_code(uint8_t *out)
 
 int NFCFramework::felica_polling(uint8_t *idm, uint8_t *pmm, uint16_t *response_code)
 {
-    int polling_result = nfc.felica_Polling(DEFAULT_SYSTEM_CODE, DEFAULT_REQUEST_CODE, idm, pmm, response_code);
+    int polling_result = nfc.felica_Polling(DEFAULT_SYSTEM_CODE, DEFAULT_REQUEST_CODE, idm, pmm, response_code, 65535);
     if (polling_result < 0)
     {
         LOG_ERROR("Failed to poll with result: ");
@@ -417,7 +417,7 @@ int NFCFramework::felica_polling(uint8_t *idm, uint8_t *pmm, uint16_t *response_
 
 int NFCFramework::felica_polling(uint8_t system_code, uint8_t *idm, uint8_t *pmm, uint16_t *response_code)
 {
-    int polling_result = nfc.felica_Polling(system_code, DEFAULT_REQUEST_CODE, idm, pmm, response_code);
+    int polling_result = nfc.felica_Polling(system_code, DEFAULT_REQUEST_CODE, idm, pmm, response_code, 65535);
     if (polling_result < 0)
     {
         LOG_ERROR("Failed to poll with result: ");
@@ -428,7 +428,7 @@ int NFCFramework::felica_polling(uint8_t system_code, uint8_t *idm, uint8_t *pmm
 
 int NFCFramework::felica_polling(uint8_t system_code, uint8_t request_code, uint8_t *idm, uint8_t *pmm, uint16_t *response_code)
 {
-    int polling_result = nfc.felica_Polling(system_code, request_code, idm, pmm, response_code);
+    int polling_result = nfc.felica_Polling(system_code, request_code, idm, pmm, response_code, 65535);
     if (polling_result < 0)
     {
         LOG_ERROR("Failed to poll with result: ");
