@@ -26,24 +26,24 @@ NFCFramework::~NFCFramework()
 
 bool NFCFramework::ready()
 {
-    return nfc.getFirmwareVersion();
+    return nfc->getFirmwareVersion();
 }
 
 int NFCFramework::get_tag_uid(uint8_t *uid, uint8_t length)
 {
-    return nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &length);
+    return nfc->readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &length);
 }
 
 int NFCFramework::get_tag_uid(uint8_t *uid, uint8_t *length)
 {
     LOG_INFO("Getting NFC Framework");
-    return nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, length);
+    return nfc->readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, length);
 }
 
 int NFCFramework::get_tag_uid(uint8_t *uid, uint8_t *length, uint16_t *atqa, uint8_t *sak)
 {
     LOG_INFO("Getting NFC Framework");
-    return nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, length, atqa, sak);
+    return nfc->readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, length, atqa, sak);
 }
 
 void NFCFramework::print_block(int currentblock, uint8_t *block)
@@ -58,7 +58,7 @@ void NFCFramework::print_block(int currentblock, uint8_t *block)
     {
         SERIAL_DEVICE.print(" ");
     }
-    nfc.PrintHexChar(block, BLOCK_SIZE);
+    nfc->PrintHexChar(block, BLOCK_SIZE);
 }
 
 void NFCFramework::print_error(int block_number, const char *reason)
@@ -86,12 +86,12 @@ bool NFCFramework::read_block(uint8_t block, uint8_t *key, KeyType key_type, uin
     }
     Serial.println();
     
-    if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
+    if (nfc->readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
     {
             Serial.println("Read12");
-        if(nfc.mifareclassic_AuthenticateBlock(uid, uidLength, block, key_type, key)) {
+        if(nfc->mifareclassic_AuthenticateBlock(uid, uidLength, block, key_type, key)) {
             Serial.println("Authentication successful!");   
-            return nfc.mifareclassic_ReadDataBlock(block, out);
+            return nfc->mifareclassic_ReadDataBlock(block, out);
         } else {
             Serial.println("Authentication failed!");
             return false;
@@ -115,12 +115,12 @@ uint8_t *NFCFramework::dump_tag(uint8_t key[], size_t *uid_length, DumpResult *r
     // 'uid' will be populated with the UID, and uidLength will indicate
     // if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
 
-    if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
+    if (nfc->readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
     {
         *uid_length = uidLength;
         // Display some basic information about the card
         SERIAL_DEVICE.printf("Found a new card!\n UID Length: %i\n UID Value: ", uidLength);
-        nfc.PrintHex(uid, uidLength);
+        nfc->PrintHex(uid, uidLength);
         SERIAL_DEVICE.println("");
 
         if (MIFARE_IS_ULTRALIGHT(uidLength))
@@ -143,9 +143,9 @@ uint8_t *NFCFramework::dump_tag(uint8_t key[], size_t *uid_length, DumpResult *r
             SERIAL_DEVICE.println("-------------------------");
             if (!MIFARE_IS_ULTRALIGHT(uidLength))
             {
-                if (nfc.mifareclassic_AuthenticateBlock(uid, uidLength, currentblock, 0, key))
+                if (nfc->mifareclassic_AuthenticateBlock(uid, uidLength, currentblock, 0, key))
                 {
-                    if (nfc.mifareclassic_ReadDataBlock(currentblock, block))
+                    if (nfc->mifareclassic_ReadDataBlock(currentblock, block))
                     {
                         // Read successful
                         memcpy(&all_blocks[currentblock * 16], block, sizeof(block)); // Store block in all_blocks array
@@ -167,7 +167,7 @@ uint8_t *NFCFramework::dump_tag(uint8_t key[], size_t *uid_length, DumpResult *r
             }
             else
             {
-                if (nfc.mifareultralight_ReadPage(currentblock, block))
+                if (nfc->mifareultralight_ReadPage(currentblock, block))
                 {
                     // Read successful
                     print_block(currentblock, block);                             // Print block
@@ -203,12 +203,12 @@ uint8_t* NFCFramework::dump_tag(Key* keys, uint8_t blocks, DumpResult *result)
     // 'uid' will be populated with the UID, and uidLength will indicate
     // if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
 
-    if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
+    if (nfc->readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
     {
         // *uid_length = uidLength;
         // Display some basic information about the card
         SERIAL_DEVICE.printf("Found a new card!\n UID Length: %i\n UID Value: ", uidLength);
-        nfc.PrintHex(uid, uidLength);
+        nfc->PrintHex(uid, uidLength);
         SERIAL_DEVICE.println("");
 
         if (MIFARE_IS_ULTRALIGHT(uidLength))
@@ -232,9 +232,9 @@ uint8_t* NFCFramework::dump_tag(Key* keys, uint8_t blocks, DumpResult *result)
             SERIAL_DEVICE.println("-------------------------");
             if (!MIFARE_IS_ULTRALIGHT(uidLength))
             {
-                if (nfc.mifareclassic_AuthenticateBlock(uid, uidLength, currentblock, keys[currentblock / 4].type, keys[currentblock / 4].data))
+                if (nfc->mifareclassic_AuthenticateBlock(uid, uidLength, currentblock, keys[currentblock / 4].type, keys[currentblock / 4].data))
                 {
-                    if (nfc.mifareclassic_ReadDataBlock(currentblock, block))
+                    if (nfc->mifareclassic_ReadDataBlock(currentblock, block))
                     {
                         // Read successful
                         memcpy(&all_blocks[currentblock * 16], block, sizeof(block)); // Store block in all_blocks array
@@ -256,7 +256,7 @@ uint8_t* NFCFramework::dump_tag(Key* keys, uint8_t blocks, DumpResult *result)
             }
             else
             {
-                if (nfc.mifareultralight_ReadPage(currentblock, block))
+                if (nfc->mifareultralight_ReadPage(currentblock, block))
                 {
                     // Read successful
                     print_block(currentblock, block);                             // Print block
@@ -281,9 +281,9 @@ bool NFCFramework::auth_tag(uint8_t *key, uint8_t block_number, KeyType key_type
 {
     uint8_t uid[7] = {0}; // Buffer to store the returned UID
     uint8_t uidLength;    // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
-    if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
+    if (nfc->readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
     {
-        if (nfc.mifareclassic_AuthenticateBlock(uid, uidLength, block_number, key_type, key))
+        if (nfc->mifareclassic_AuthenticateBlock(uid, uidLength, block_number, key_type, key))
         {
             SERIAL_DEVICE.println("Key found!");
             return true;
@@ -300,11 +300,11 @@ bool NFCFramework::write_tag(size_t block_number, uint8_t *data, uint8_t key_typ
 {
     uint8_t uid[7] = {0}; // Buffer to store the returned UID
     uint8_t uidLength;    // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
-    if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
+    if (nfc->readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
     {
-        if (nfc.mifareclassic_AuthenticateBlock(uid, uidLength, block_number, key_type, key))
+        if (nfc->mifareclassic_AuthenticateBlock(uid, uidLength, block_number, key_type, key))
         {
-            return nfc.mifareclassic_WriteDataBlock(block_number, data);
+            return nfc->mifareclassic_WriteDataBlock(block_number, data);
         }
     }else {
         SERIAL_DEVICE.println("Timeout");
@@ -324,14 +324,14 @@ uint8_t *NFCFramework::dump_ntag2xx_tag(size_t pages)
     uint8_t uidLength;                                              // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
     uint8_t *tag_data = prepare_tag_store(tag_data, pages * NTAG_PAGE_SIZE); // Container for all sectors
 
-    if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
+    if (nfc->readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
     {
         SERIAL_DEVICE.println("Found an ISO14443A card");
         SERIAL_DEVICE.print("  UID Length: ");
         SERIAL_DEVICE.print(uidLength, DEC);
         SERIAL_DEVICE.println(" bytes");
         SERIAL_DEVICE.print("  UID Value: ");
-        nfc.PrintHex(uid, uidLength);
+        nfc->PrintHex(uid, uidLength);
         SERIAL_DEVICE.println("");
         if (uidLength != 7)
         {
@@ -345,7 +345,7 @@ uint8_t *NFCFramework::dump_ntag2xx_tag(size_t pages)
             LOG_INFO("Probably a ntag2xx tag");
             for (uint8_t i = 0; i < pages; i++)
             {
-                // if (nfc.ntag2xx_ReadPage(i, data))
+                // if (nfc->ntag2xx_ReadPage(i, data))
                 // {
                 //     // Read successfully
                 //     memcpy(&tag_data[i * NTAG_PAGE_SIZE], data, sizeof(data));
@@ -369,15 +369,16 @@ bool NFCFramework::write_ntag2xx_page(size_t page, uint8_t *data)
 {
     uint8_t uid[7] = {0}; // Buffer to store the returned UID
     uint8_t uidLength;    // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
-
-    if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
+    uint16_t atqa;
+    uint8_t sak;
+    if (nfc->readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength))
     {
         SERIAL_DEVICE.println("Found an ISO14443A card");
         SERIAL_DEVICE.print("  UID Length: ");
         Serial.print(uidLength, DEC);
         Serial.println(" bytes");
         SERIAL_DEVICE.print("  UID Value: ");
-        nfc.PrintHex(uid, uidLength);
+        nfc->PrintHex(uid, uidLength);
         SERIAL_DEVICE.println("");
         if (uidLength != 7)
         {
@@ -386,7 +387,7 @@ bool NFCFramework::write_ntag2xx_page(size_t page, uint8_t *data)
         else
         {
             LOG_INFO("Probably a ntag2xx tag");
-            return nfc.mifareultralight_WritePage(page, data);
+            return nfc->mifareultralight_WritePage(page, data);
         }
     }else {
         SERIAL_DEVICE.println("Timeout");
@@ -406,7 +407,7 @@ void NFCFramework::fill_JIS_system_code(uint8_t *out)
 
 int NFCFramework::felica_polling(uint8_t *idm, uint8_t *pmm, uint16_t *response_code)
 {
-    int polling_result = nfc.felica_Polling(DEFAULT_SYSTEM_CODE, DEFAULT_REQUEST_CODE, idm, pmm, response_code, 65535);
+    int polling_result = nfc->felica_Polling(DEFAULT_SYSTEM_CODE, DEFAULT_REQUEST_CODE, idm, pmm, response_code, 65535);
     if (polling_result < 0)
     {
         LOG_ERROR("Failed to poll with result: ");
@@ -417,7 +418,7 @@ int NFCFramework::felica_polling(uint8_t *idm, uint8_t *pmm, uint16_t *response_
 
 int NFCFramework::felica_polling(uint8_t system_code, uint8_t *idm, uint8_t *pmm, uint16_t *response_code)
 {
-    int polling_result = nfc.felica_Polling(system_code, DEFAULT_REQUEST_CODE, idm, pmm, response_code, 65535);
+    int polling_result = nfc->felica_Polling(system_code, DEFAULT_REQUEST_CODE, idm, pmm, response_code, 65535);
     if (polling_result < 0)
     {
         LOG_ERROR("Failed to poll with result: ");
@@ -428,7 +429,7 @@ int NFCFramework::felica_polling(uint8_t system_code, uint8_t *idm, uint8_t *pmm
 
 int NFCFramework::felica_polling(uint8_t system_code, uint8_t request_code, uint8_t *idm, uint8_t *pmm, uint16_t *response_code)
 {
-    int polling_result = nfc.felica_Polling(system_code, request_code, idm, pmm, response_code, 65535);
+    int polling_result = nfc->felica_Polling(system_code, request_code, idm, pmm, response_code, 65535);
     if (polling_result < 0)
     {
         LOG_ERROR("Failed to poll with result: ");
@@ -443,7 +444,7 @@ int NFCFramework::felica_read_without_encryption(uint8_t service_codes_list_leng
     uint8_t _pmm[8];
     uint16_t sys_code;
     if(felica_polling(_idm, _pmm, &sys_code)) { // Wait for a FeliCa card
-        int result = nfc.felica_ReadWithoutEncryption(service_codes_list_length, service_codes, block_number, block_list, data);
+        int result = nfc->felica_ReadWithoutEncryption(service_codes_list_length, service_codes, block_number, block_list, data);
         if (result <= 0)
         {
             data = NULL;
@@ -464,7 +465,7 @@ int NFCFramework::felica_write_without_encryption(uint8_t service_codes_list_len
     uint8_t _pmm[8];
     uint16_t sys_code;
     if(felica_polling(_idm, _pmm, &sys_code)) { // Wait for a FeliCa card
-        return nfc.felica_WriteWithoutEncryption(service_codes_list_length, service_codes, block_number, block_list, data);
+        return nfc->felica_WriteWithoutEncryption(service_codes_list_length, service_codes, block_number, block_list, data);
     } else {
         return -1;
     }

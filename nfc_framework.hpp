@@ -20,8 +20,7 @@
 
 #include <Arduino.h>
 #include <Wire.h>
-#include "PN532_I2C.h"
-#include "PN532.h"
+#include "Adafruit_PN532.h"
 #include <SPI.h>
 
 // Some Mifare definitions
@@ -105,12 +104,7 @@ typedef struct TagType {
 class NFCFramework
 {
 private:
-    int sck;
-    int miso;
-    int mosi;
-    int ss;
-    PN532_I2C pn532i2c = PN532_I2C(Wire);
-    PN532 nfc = PN532(pn532i2c);
+    Adafruit_PN532 *nfc;
     void print_block(int currentblock, uint8_t *block);
     void print_error(int block_number, const char *reason);
     uint8_t *prepare_tag_store(uint8_t *tag_data, size_t tag_size); 
@@ -119,16 +113,22 @@ private:
     void fill_JIS_system_code(uint8_t *out);
 public:
     // NFCFramework(int sck, int miso, int mosi, int ss);
-    NFCFramework(){
+    NFCFramework(uint8_t sck, uint8_t miso, uint8_t mosi, uint8_t ss){
+        nfc = new Adafruit_PN532(sck, miso, mosi, ss);
         LOG_INFO("Init NFC Framework");
-        nfc.begin();
-        nfc.SAMConfig();
+        nfc->begin();
+        nfc->SAMConfig();
+    }
+    NFCFramework(uint8_t irq, uint8_t rst){
+        nfc = new Adafruit_PN532(irq, rst);
+        LOG_INFO("Init NFC Framework");
+        nfc->begin();
+        nfc->SAMConfig();
     }
     ~NFCFramework();
     bool ready();
     void power_down() {
-        nfc.SAMConfig();    // Reset module
-        nfc.powerDownMode();    // Power down it(save energy+reset it)
+        // Deprecated
     }
     void printHex(byte *data, uint32_t length) {
     for (uint8_t i = 0; i < length; i++) {
@@ -174,7 +174,7 @@ public:
     int felica_polling(uint8_t system_code, uint8_t request_code ,uint8_t *idm, uint8_t *pmm, uint16_t *response_code);
     int felica_read_without_encryption(uint8_t service_codes_list_length, uint16_t *service_codes, uint8_t block_number, uint16_t *block_list, uint8_t data[][16]);
     int felica_write_without_encryption(uint8_t service_codes_list_length, uint16_t *service_codes, uint8_t block_number, uint16_t *block_list, uint8_t data[][16]);
-    void felica_release() { nfc.felica_Release(); };
+    void felica_release() { nfc->felica_Release(); };
 };
 
 #endif

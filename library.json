@@ -12,11 +12,12 @@
         "type": "git",
         "url": "https://github.com/CapibaraZero/NFCFramework"
     },
-    "version": "2.0.0",
+    "version": "2.0.1",
     "frameworks": "arduino",
     "dependencies":
 	{
         "SPI": "*",
-        "Wire": "*"
+        "Wire": "*",
+        "Adafruit_PN532": "https://github.com/CapibaraZero/Adafruit-PN532.git"
 	}
 }
