@@ -128,7 +128,9 @@ public:
     ~NFCFramework();
     bool ready();
     void power_down() {
-        // Deprecated
+        nfc->reset();
+        nfc->begin();
+        nfc->SAMConfig();
     }
     void printHex(byte *data, uint32_t length) {
     for (uint8_t i = 0; i < length; i++) {
