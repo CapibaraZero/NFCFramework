@@ -132,6 +132,9 @@ public:
         nfc->begin();
         nfc->SAMConfig();
     }
+    uint32_t get_version() {
+        return nfc->getFirmwareVersion();
+    }
     void printHex(byte *data, uint32_t length) {
     for (uint8_t i = 0; i < length; i++) {
         if (data[i] < 0x10) {
