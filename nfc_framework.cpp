@@ -312,12 +312,6 @@ bool NFCFramework::write_tag(size_t block_number, uint8_t *data, uint8_t key_typ
     return false;
 }
 
-// TODO: Implement emulator
-void NFCFramework::emulate_tag(uint8_t *data)
-{
-    // To be done
-}
-
 uint8_t *NFCFramework::dump_ntag2xx_tag(size_t pages)
 {
     uint8_t uid[7] = {0};                                           // Buffer to store the returned UID
