@@ -18,6 +18,7 @@
 	{
         "SPI": "*",
         "Wire": "*",
-        "Adafruit_PN532": "https://github.com/CapibaraZero/Adafruit-PN532.git"
+        "Adafruit_PN532": "https://github.com/CapibaraZero/Adafruit-PN532.git",
+        "BER-TLV": "https://github.com/huckor/BER-TLV.git"
 	}
 }

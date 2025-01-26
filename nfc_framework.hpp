@@ -22,6 +22,7 @@
 #include <Wire.h>
 #include "Adafruit_PN532.h"
 #include <SPI.h>
+#include <vector>
 
 // Some Mifare definitions
 #define MIFARE_CLASSIC_SIZE 1024
@@ -189,7 +190,14 @@ public:
         uint8_t empty[10];
         memset(empty, 0, 10);
         return nfc->AsTarget(empty, idm, pmm, sys_code); 
-    }; 
+    };
+
+    // EMV methods created with the help of https://werner.rothschopf.net/201703_arduino_esp8266_nfc.htm
+    std::vector<uint8_t> emv_ask_for_aid();
+    std::vector<uint8_t> emv_ask_for_app_name();
+    std::vector<uint8_t> emv_ask_for_pdol(std::vector<uint8_t> *aid);
+    std::vector<uint8_t> emv_ask_for_afl();
+    std::vector<uint8_t> emv_read_afl(uint8_t p2);
 };
 
 #endif

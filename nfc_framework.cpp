@@ -1,6 +1,6 @@
 /*
  * This file is part of the Capibara zero project(https://capibarazero.github.io/).
- * Copyright (c) 2024 Andrea Canale.
+ * Copyright (c) 2025 Andrea Canale.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 #include "nfc_framework.hpp"
 #include "Arduino.h"
 #include <map>
+#include "BerTlv.h"
 
 NFCFramework::~NFCFramework()
 {
@@ -463,4 +464,106 @@ int NFCFramework::felica_write_without_encryption(uint8_t service_codes_list_len
     } else {
         return -1;
     }
+}
+
+std::vector<uint8_t> NFCFramework::emv_ask_for_aid() {
+    uint8_t uid[7];
+    uint8_t len;
+    uint8_t response[240];
+    uint8_t response_len = 0;
+    std::vector<uint8_t> aid;
+    if(get_tag_uid(uid, &len)) {
+
+        /* Select Application */
+        uint8_t ask_for_aid_apdu[] ={0x00, 0xA4, 0x04, 0x00, 0x0e, 0x32, 0x50, 0x41, 0x59, 0x2e, 0x53, 0x59, 0x53, 0x2e, 0x44, 0x44, 0x46, 0x30, 0x31, 0x00};
+        if(nfc->EMVinDataExchange(ask_for_aid_apdu, sizeof(ask_for_aid_apdu), response, &response_len)) {
+            std::vector<uint8_t> response_vector(&response[0], &response[response_len]);
+            BerTlv Tlv;
+            Tlv.SetTlv(response_vector);
+            if(Tlv.GetValue("4F", &aid) != OK) {  // Application ID
+                Serial.println("Can't get aid");
+                aid.clear();
+            }
+            Serial.println("Success AID");
+        }
+    }
+    return aid;
+}
+
+std::vector<uint8_t> NFCFramework::emv_ask_for_app_name() {
+    uint8_t uid[7];
+    uint8_t len;
+    uint8_t response[240];
+    uint8_t response_len = 0;
+    std::vector<uint8_t> app_name;
+    uint8_t ask_for_aid_apdu[] ={0x00, 0xA4, 0x04, 0x00, 0x0e, 0x32, 0x50, 0x41, 0x59, 0x2e, 0x53, 0x59, 0x53, 0x2e, 0x44, 0x44, 0x46, 0x30, 0x31, 0x00};
+    if(nfc->EMVinDataExchange(ask_for_aid_apdu, sizeof(ask_for_aid_apdu), response, &response_len)) {
+        std::vector<uint8_t> response_vector(&response[0], &response[response_len]);
+        BerTlv Tlv;
+        Tlv.SetTlv(response_vector);
+        if(Tlv.GetValue("50", &app_name) != OK) {  // Card name
+            Serial.println("Can't get app name");
+            app_name.clear();
+        }
+        Serial.println("Success app_name");
+    }
+    return app_name;
+}
+
+std::vector<uint8_t> NFCFramework::emv_ask_for_pdol(std::vector<uint8_t> *aid) {
+    uint8_t uid[7];
+    uint8_t len;
+    uint8_t response[240];
+    uint8_t response_len = 0;
+    std::vector<uint8_t> pdol;
+                                                              /* ------------------- AID -----------------*/
+    uint8_t ask_for_pdol[] = {0x00 , 0xa4, 0x04, 0x00, 0x07,  0x00 ,0x00 , 0x00 , 0x00 , 0x00 , 0x00, 0x90, 0x00};
+    memcpy(ask_for_pdol+5, aid->data(), 7);
+
+    if(nfc->EMVinDataExchange(ask_for_pdol, sizeof(ask_for_pdol), response, &response_len)) {
+        std::vector<uint8_t> response_vector(&response[0], &response[response_len]);
+        BerTlv Tlv;
+        Tlv.SetTlv(response_vector);
+        if(Tlv.GetValue("9F38", &pdol) != OK) {  // PDOL(Some card doesn't have it)
+            Serial.println("Can't get PDOL");
+            pdol.clear();
+        }
+    }
+    return pdol;
+}
+
+std::vector<uint8_t> NFCFramework::emv_ask_for_afl() {
+    uint8_t uid[7];
+    uint8_t len;
+    uint8_t response[240];
+    uint8_t response_len = 0;
+    std::vector<uint8_t> afl;
+    uint8_t ask_for_afl[] = {0x80, 0xa8, 0x00, 0x00, 0x02, 0x83, 0x00, 0x00};   // Get AFL
+
+    if(nfc->EMVinDataExchange(ask_for_afl, sizeof(ask_for_afl), response, &response_len)) {
+        std::vector<uint8_t> response_vector(&response[0], &response[response_len]);
+        BerTlv Tlv;
+        Tlv.SetTlv(response_vector);
+        if(Tlv.GetValue("94", &afl) != OK) {  // AFL
+            Serial.println("Can't get AFL");
+            afl.clear();
+        }
+    }
+    return afl;
+}
+
+std::vector<uint8_t> NFCFramework::emv_read_afl(uint8_t p2) {
+    uint8_t uid[7];
+    uint8_t len;
+    uint8_t response[240];
+    uint8_t response_len = 0;
+    std::vector<uint8_t> result;
+
+    uint8_t read_afl[] = { 0x00, 0xB2, 0x01, 0x00, 0x00 };
+    read_afl[3] = p2;
+        
+    if(nfc->EMVinDataExchange(read_afl, sizeof(read_afl), response, &response_len)) {
+        result = std::vector<uint8_t>(&response[0], &response[response_len]);
+    }
+    return result;
 }
