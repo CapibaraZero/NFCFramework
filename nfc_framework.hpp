@@ -92,10 +92,10 @@ typedef struct TagType {
 #define MIFARE_MINI (TagType){"Mifare Mini",0x04, 0x09, 4, 20}
 
 // Debug macros
-#ifdef ARDUINO_NANO_ESP32
-#define SERIAL_DEVICE Serial
-#else
+#ifdef ESP32S3_DEVKITC_BOARD
 #define SERIAL_DEVICE Serial0
+#else
+#define SERIAL_DEVICE Serial
 #endif
 
 #define LOG_ERROR(reason) SERIAL_DEVICE.printf("\e[31m%s\e[0m", reason)
