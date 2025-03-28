@@ -152,7 +152,7 @@ public:
         } else if (atqa == 0x04 && sak == 0x09 && uid_len == MIFARE_MINI.uid_length) {
             return MIFARE_MINI;
         } else {
-            return (TagType){0, 0, 0, 20};
+            return (TagType){"Unknown", 0, 0, 0, 20};
         }
     }
     // Generic ISO14443A functions
